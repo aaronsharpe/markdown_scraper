@@ -4,38 +4,42 @@ Functions for scrapping markdown header cells from jupyter notebooks
 
 import json
 import os
-from IPython.display import display, Markdown
 import nbformat as nbf
 
-def scrape_markdown(filelist=None, exclude=[],
+def scrape_markdown(filelist=None, exclude=None,
                     headers_only=False, skip_cells=0):
     """
-    text
+    pulls all the markdown cells from jupyter notebooks
 
-    Arguments:
-        arg:
+    arguments:
+        filelist: list of notebooks to scrape
+        exclude: list of notebooks to skip
+        headers_only: when true, skip plain markdown
+        skip_cells: skips a number of markdown cells at the beginning of a file
     """
     if filelist != None:
         for file in filelist:
             if not file.endswith('.ipynb'):
                 raise ValueError('filenames must end with .ipynb')
 
-    if filelist == None:
+    if filelist is None:
         filelist = []
         for file in os.listdir():
             if file.endswith('.ipynb'):
                 filelist.append(file)
-
-        for file in exclude:
-            if not file.endswith('.ipynb'):
-                raise ValueError('filenames must end with .ipynb')
-
-            filelist.remove(file)
+        if exclude is not None:
+            for file in exclude:
+                if not file.endswith('.ipynb'):
+                    raise ValueError('filenames must end with .ipynb')
+                try:
+                    filelist.remove(file)
+                except ValueError:
+                    pass
 
     markdown_cells = []
 
     for file in filelist:
-        with open(file,'r') as f:
+        with open(file, 'r') as f:
             json_load = json.load(f)
 
         cell = nbf.v4.new_markdown_cell('# ' + file)
@@ -57,10 +61,11 @@ def scrape_markdown(filelist=None, exclude=[],
 
 def gen_notebook(markdown_cells, filename='toc.ipynb'):
     """
-    text
+    generates a jupyter notebook comprised of the input markdown cells
 
-    Arguments:
-        arg:
+    arguments:
+        markdown_cells: list of markdown cells to write
+        filename: filename for the output notebook
     """
     if not filename.endswith('.ipynb'):
         raise ValueError('filenames must end with .ipynb')
