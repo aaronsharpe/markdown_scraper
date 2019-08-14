@@ -4,29 +4,24 @@ Functions for scraping markdown header cells from jupyter notebooks.
 
 import json
 import argparse
-from pathlib import Path
 import nbformat as nbf
 
 
-def scrape_markdown(directory, headers_only=False, skip_cells=0):
+def scrape_markdown(files, headers_only=False, skip_cells=0):
     """
     Pulls all the markdown cells from jupyter notebooks.
 
     Arguments:
-        directory: directory of notebooks to scrape
+        files: notebooks to scrape
         headers_only: when true, skip plain markdown
         skip_cells: skips a number of markdown cells at the beginning of a file
     """
-    dir_path = Path(directory)
-
-    filelist = filter(lambda path: path.suffix == '.ipynb', dir_path.glob('**/*'))
-
     markdown_cells = []
 
-    for file in list(filelist):
+    for file in list(files):
         with open(file) as f:
             notebook = json.load(f)
-        filename_cell = nbf.v4.new_markdown_cell('# ' + file.name)
+        filename_cell = nbf.v4.new_markdown_cell('# ' + file)
         markdown_cells.append(filename_cell)
 
         for i, cell in enumerate(notebook['cells']):
@@ -62,7 +57,7 @@ def gen_notebook(markdown_cells, filename='toc.ipynb'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('directory', help='directory to scrape')
+    parser.add_argument('files', nargs='*', help='files to scrape')
     parser.add_argument('--headers_only', type=bool, default=False,
                         help='omit regular markdown cells')
     parser.add_argument('-s', '--skip_cells', type=int, default=0,
@@ -70,7 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', default='toc.ipynb', help='output filename')
     args = parser.parse_args()
 
-    markdown_cells = scrape_markdown(args.directory,
+    markdown_cells = scrape_markdown(args.files,
                                      headers_only=args.headers_only,
                                      skip_cells=args.skip_cells)
     gen_notebook(markdown_cells, filename=args.o)
