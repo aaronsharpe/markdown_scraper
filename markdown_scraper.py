@@ -39,7 +39,7 @@ def scrape_markdown(files, headers_only=False, skip_cells=0):
     return markdown_cells
 
 
-def gen_notebook(markdown_cells, filename='toc.ipynb'):
+def gen_notebook(markdown_cells, filename=None):
     """
     Generates a jupyter notebook comprised of the input markdown cells.
 
@@ -50,9 +50,11 @@ def gen_notebook(markdown_cells, filename='toc.ipynb'):
 
     nb = nbf.v4.new_notebook()
     nb['cells'] = markdown_cells
-
-    with open(filename, 'w') as f:
-        nbf.write(nb, f)
+    if filename is None:
+        print(list(nb))
+    else:
+        with open(filename, 'w') as f:
+            nbf.write(nb, f)
 
 
 if __name__ == '__main__':
@@ -62,9 +64,9 @@ if __name__ == '__main__':
                         help='omit regular markdown cells')
     parser.add_argument('-s', '--skip_cells', type=int, default=0,
                         help='number of cells to skip at start of notebook')
-    parser.add_argument('-o', default='toc.ipynb', help='output filename')
+    parser.add_argument('-o', help='output filename')
     args = parser.parse_args()
-
+    
     markdown_cells = scrape_markdown(args.files,
                                      headers_only=args.headers_only,
                                      skip_cells=args.skip_cells)
